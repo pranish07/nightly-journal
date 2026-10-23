@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% from "macros.html" import goal_row, plan_row %}
+
+{% block title %}Tonight's entry · {{ date_label }}{% endblock %}
+
+{% block content %}
+<section class="form-header">
+  <p class="eyebrow">{{ date_label }}</p>
+  <h1>Tonight's check-in</h1>
+  <p class="lede">A few honest notes about today, then a little planning for tomorrow.</p>
+</section>
+
+{% if error_list %}
+<div class="alert alert-error" role="alert" tabindex="-1" id="error-summary">
+  <p><strong>Please fix the following:</strong></p>
+  <ul>
+    {% for message in error_list %}<li>{{ message }}</li>{% endfor %}
+  </ul>
+</div>
+{% endif %}
+
+<form method="post" action="{{ url_for('submit_form', token=token) }}" id="entry-form" class="stack">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+  <section class="card" aria-labelledby="body-heading">
+    <h2 id="body-heading">Body and attention</h2>
+    <div class="grid-2">
+      <label>Wake time
+        <input type="time" name="wake_time" value="{{ form.wake_time }}" required>
+        {% if errors.wake_time %}<span class="field-error">{{ errors.wake_time }}</span>{% endif %}
+      </label>
+      <label>Bedtime
+        <input type="time" name="bedtime_time" value="{{ form.bedtime_time }}" required>
+        {% if errors.bedtime_time %}<span class="field-error">{{ errors.bedtime_time }}</span>{% endif %}
+      </label>
+      <label>Screen time (minutes)
+        <input type="number" name="screen_minutes" value="{{ form.screen_minutes }}" min="0" max="1440" inputmode="numeric" required>
+        {% if errors.screen_minutes %}<span class="field-error">{{ errors.screen_minutes }}</span>{% endif %}
+      </label>
+      <label>Mood
+        <select name="mood" required>
+          <option value="" disabled {% if not form.mood %}selected{% endif %}>Choose</option>
+          {% for level, label in [(1, "1 — Low"), (2, "2"), (3, "3"), (4, "4"), (5, "5 — Great")] %}
+            <option value="{{ level }}" {% if form.mood|string == level|string %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {% if errors.mood %}<span class="field-error">{{ errors.mood }}</span>{% endif %}
+      </label>
+      <label class="span-2">Top apps, if they matter
+        <input type="text" name="top_apps" value="{{ form.top_apps }}" maxlength="200" placeholder="Optional">
+        {% if errors.top_apps %}<span class="field-error">{{ errors.top_apps }}</span>{% endif %}
+      </label>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="reflection-heading">
+    <h2 id="reflection-heading">Reflection</h2>
+    <div class="stack-tight">
+      <label>Day summary
+        <textarea name="day_summary" rows="4" minlength="2" maxlength="2000" required>{{ form.day_summary }}</textarea>
+        {% if errors.day_summary %}<span class="field-error">{{ errors.day_summary }}</span>{% endif %}
+      </label>
+      <label>What went well
+        <textarea name="went_well" rows="3" maxlength="1000" required>{{ form.went_well }}</textarea>
+        {% if errors.went_well %}<span class="field-error">{{ errors.went_well }}</span>{% endif %}
+      </label>
+      <label>What to improve tomorrow
+        <textarea name="improve_tomorrow" rows="3" maxlength="1000" required>{{ form.improve_tomorrow }}</textarea>
+        {% if errors.improve_tomorrow %}<span class="field-error">{{ errors.improve_tomorrow }}</span>{% endif %}
+      </label>
+      <label>Key takeaway
+        <textarea name="key_takeaway" rows="2" maxlength="500" required>{{ form.key_takeaway }}</textarea>
+        {% if errors.key_takeaway %}<span class="field-error">{{ errors.key_takeaway }}</span>{% endif %}
+      </label>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="goals-heading">
+    <div class="section-heading">
+      <div>
+        <h2 id="goals-heading">Goals</h2>
+        <p class="hint">Add 1–10 goals, or mark today as a no-goals day.</p>
+      </div>
+      <label class="checkbox">
+        <input type="checkbox" name="no_goals" id="no_goals" aria-controls="goals-fieldset" {% if form.no_goals %}checked{% endif %}>
+        No goals today
+      </label>
+    </div>
+
+    <fieldset class="goal-fieldset" id="goals-fieldset" {% if form.no_goals %}disabled hidden{% endif %}>
+      <legend class="sr-only">Today's goals</legend>
+      {% if yesterday_goals %}
+        <button type="button" class="btn btn-secondary" id="reuse-yesterday" data-yesterday-goals='{{ yesterday_goals|tojson }}'>Reuse yesterday's goals</button>
+      {% endif %}
+      <div class="dynamic-list" id="goal-list">
+        {% for goal in form.goals %}
+          {{ goal_row(loop.index0, goal, errors) }}
+        {% endfor %}
+      </div>
+      <p class="empty-state" id="goal-empty" {% if form.goals %}hidden{% endif %}>No goals added yet.</p>
+      <div class="row-actions">
+        <button type="button" class="btn btn-secondary" id="add-goal">Add goal</button>
+        <span class="hint" id="goal-limit">Up to 10.</span>
+      </div>
+      {% if errors.goals %}<p class="field-error">{{ errors.goals }}</p>{% endif %}
+      <noscript><p class="hint">JavaScript is needed to add or remove rows. You can still submit any prefilled rows.</p></noscript>
+    </fieldset>
+
+    <template id="goal-row-template">{{ goal_row("__INDEX__", {"title": "", "done": "no", "difficulty": "3", "note": ""}, {}) }}</template>
+  </section>
+
+  <section class="card" aria-labelledby="plans-heading">
+    <div class="section-heading">
+      <div>
+        <h2 id="plans-heading">Plan tomorrow</h2>
+        <p class="hint">Optional proposals for tomorrow's form.</p>
+      </div>
+    </div>
+    <div class="dynamic-list" id="plan-list">
+      {% for title in form.plans %}
+        {{ plan_row(loop.index0, title, errors) }}
+      {% endfor %}
+    </div>
+    <p class="empty-state" id="plan-empty" {% if form.plans %}hidden{% endif %}>Nothing planned yet.</p>
+    <div class="row-actions">
+      <button type="button" class="btn btn-secondary" id="add-plan">Add plan</button>
+      <span class="hint" id="plan-limit">Up to 10.</span>
+    </div>
+    {% if errors.plans %}<p class="field-error">{{ errors.plans }}</p>{% endif %}
+    <template id="plan-row-template">{{ plan_row("__INDEX__", "", {}) }}</template>
+  </section>
+
+  <div class="submit-bar">
+    <p class="hint">One submission per day. You cannot edit after saving.</p>
+    <button type="submit" class="btn btn-primary" data-submit>Save tonight's entry</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='form.js') }}" defer></script>
+{% endblock %}

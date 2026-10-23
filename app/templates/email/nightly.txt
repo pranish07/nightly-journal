@@ -1,0 +1,21 @@
+NIGHTLY JOURNAL
+{{ date_label }}
+
+A few honest notes about today, then a little planning for tomorrow.
+
+Open tonight's check-in:
+{{ form_url }}
+
+CURRENT GOAL STREAK
+{% if streak.current_goal %}{{ streak.current_goal }} day{% if streak.current_goal != 1 %}s{% endif %}
+{% else %}No active goal streak yet — tonight is a good place to start one.
+{% endif %}
+PLANNED FOR TODAY
+{% if planned_goals %}{% for goal in planned_goals %}- {{ goal.title }}
+{% endfor %}{% else %}Nothing planned — add goals in tonight's form.
+{% endif %}
+YESTERDAY'S HEADLINE
+{{ yesterday_headline }}
+
+Open the dashboard:
+{{ dashboard_url }}

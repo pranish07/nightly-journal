@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tonight's check-in</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f1e8;color:#25231f;font-family:Arial,Helvetica,sans-serif;">
+  <div style="display:none;font-size:1px;color:#f5f1e8;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    A quiet check-in for {{ date_label }}.
+  </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f1e8;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background-color:#fffdf8;border:1px solid #d9d1c2;border-radius:14px;">
+          <tr>
+            <td style="padding:28px 28px 8px;">
+              <p style="margin:0 0 8px;color:#6b665d;font-size:12px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;">Nightly Journal</p>
+              <h1 style="margin:0 0 10px;color:#25231f;font-size:26px;line-height:1.2;">{{ date_label }}</h1>
+              <p style="margin:0 0 18px;color:#4f4a42;font-size:16px;line-height:1.55;">A few honest notes about today, then a little planning for tomorrow.</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 0 22px;">
+                <tr>
+                  <td style="border-radius:9px;background-color:#2f6656;">
+                    <a href="{{ form_url }}" style="display:inline-block;padding:12px 18px;color:#ffffff;font-size:16px;font-weight:bold;text-decoration:none;">Open tonight's check-in</a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 28px 22px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0ebe0;border-radius:11px;">
+                <tr>
+                  <td style="padding:16px 18px;">
+                    <p style="margin:0 0 6px;color:#6b665d;font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Current goal streak</p>
+                    {% if streak.current_goal %}
+                      <p style="margin:0;color:#25231f;font-size:18px;font-weight:bold;">{{ streak.current_goal }} day{% if streak.current_goal != 1 %}s{% endif %}</p>
+                    {% else %}
+                      <p style="margin:0;color:#25231f;font-size:16px;line-height:1.5;">No active goal streak yet — tonight is a good place to start one.</p>
+                    {% endif %}
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 28px 20px;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:18px;">Planned for today</h2>
+              {% if planned_goals %}
+                <ul style="margin:0;padding-left:20px;color:#4f4a42;font-size:15px;line-height:1.6;">
+                  {% for goal in planned_goals %}<li style="margin:0 0 4px;">{{ goal.title }}</li>{% endfor %}
+                </ul>
+              {% else %}
+                <p style="margin:0;color:#4f4a42;font-size:15px;line-height:1.6;">Nothing planned — add goals in tonight's form.</p>
+              {% endif %}
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 28px 24px;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:18px;">Yesterday's headline</h2>
+              <p style="margin:0;color:#4f4a42;font-size:15px;line-height:1.6;">{{ yesterday_headline }}</p>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:18px 28px;border-top:1px solid #d9d1c2;">
+              <p style="margin:0;color:#6b665d;font-size:13px;line-height:1.6;">
+                <a href="{{ dashboard_url }}" style="color:#234f43;">Open the dashboard</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

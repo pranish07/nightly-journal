@@ -1,0 +1,64 @@
+{% macro goal_row(index, goal, errors) %}
+<div class="row-card" data-row>
+  <div class="row-head">
+    <h3>Goal <span data-row-number>{% if index is number %}{{ index + 1 }}{% endif %}</span></h3>
+    <button type="button" class="btn-link" data-remove-row>Remove</button>
+  </div>
+  <div class="grid-2">
+    <label class="span-2">Title
+      <input
+        type="text"
+        name="goal_title_{{ index }}"
+        id="goal_title_{{ index }}"
+        value="{{ goal.title }}"
+        maxlength="120"
+        required
+      >
+    </label>
+    <label>Done
+      <select name="goal_done_{{ index }}" id="goal_done_{{ index }}">
+        <option value="no" {% if goal.done != "yes" %}selected{% endif %}>No</option>
+        <option value="yes" {% if goal.done == "yes" %}selected{% endif %}>Yes</option>
+      </select>
+    </label>
+    <label>Difficulty
+      <select name="goal_difficulty_{{ index }}" id="goal_difficulty_{{ index }}">
+        {% for level in range(1, 6) %}
+          <option value="{{ level }}" {% if goal.difficulty|string == level|string %}selected{% endif %}>{{ level }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label class="span-2">Note or reason
+      <textarea
+        name="goal_note_{{ index }}"
+        id="goal_note_{{ index }}"
+        rows="2"
+        maxlength="280"
+        required
+      >{{ goal.note }}</textarea>
+    </label>
+  </div>
+  {% set row_error = errors.get("goal_" ~ index) if errors else None %}
+  {% if row_error %}<p class="field-error">{{ row_error }}</p>{% endif %}
+</div>
+{% endmacro %}
+
+{% macro plan_row(index, title, errors) %}
+<div class="row-card row-card-compact" data-row>
+  <div class="row-head">
+    <h3>Plan <span data-row-number>{% if index is number %}{{ index + 1 }}{% endif %}</span></h3>
+    <button type="button" class="btn-link" data-remove-row>Remove</button>
+  </div>
+  <label>Title
+    <input
+      type="text"
+      name="plan_title_{{ index }}"
+      id="plan_title_{{ index }}"
+      value="{{ title }}"
+      maxlength="120"
+    >
+  </label>
+  {% set row_error = errors.get("plan_" ~ index) if errors else None %}
+  {% if row_error %}<p class="field-error">{{ row_error }}</p>{% endif %}
+</div>
+{% endmacro %}
