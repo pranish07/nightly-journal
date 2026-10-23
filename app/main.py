@@ -76,6 +76,10 @@ def create_app(
         response.headers["Referrer-Policy"] = "no-referrer"
         response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
         response.headers["X-Robots-Tag"] = "noindex, nofollow"
+        if request.url.path.startswith(("/f/", "/thanks/")):
+            response.headers["Cache-Control"] = "no-store"
+        elif request.url.path.startswith("/static/"):
+            response.headers["Cache-Control"] = "no-cache"
         if app_settings.app_env == "production":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response

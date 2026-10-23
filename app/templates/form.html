@@ -132,7 +132,10 @@
 
   <div class="submit-bar">
     <p class="hint">One submission per day. You cannot edit after saving.</p>
-    <button type="submit" class="btn btn-primary" data-submit>Save tonight's entry</button>
+    <button type="submit" class="btn btn-primary" data-submit data-label="Save tonight's entry">
+      <span class="btn-spinner" data-spinner aria-hidden="true" hidden></span>
+      <span data-submit-label>Save tonight's entry</span>
+    </button>
   </div>
 </form>
 {% endblock %}

@@ -48,7 +48,7 @@ LIMIT 10;
 | Weekly email missing | Chart or insight failure | Search logs for `email_job_failed`; inspect `email_log.last_error` |
 | Weekly email missing | Five failed attempts | Reset only after fixing the cause; see “Resetting a failed job” |
 | Weekly email missing | Empty report | An empty week still sends a report with “not logged” days |
-| Insight pending forever | Background task failed | Check logs; refresh `/thanks/{token}`; the entry is already saved |
+| Insight missing after submission | Background task failed | Check logs; the entry is already saved; open `/thanks/{token}` to see any stored insight |
 | Insight always rule-based | Gemini key or model missing | Set `GEMINI_API_KEY` and `GEMINI_MODEL` |
 | Insight always rule-based | Rate limit, timeout, auth, or invalid schema | Search logs for `gemini_insight_fallback reason=...` |
 | Insight always rule-based | Model output rejected | Check the reason; fallback is expected for invalid JSON/schema |

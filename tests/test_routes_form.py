@@ -81,6 +81,9 @@ def test_form_get_renders(bundle: SimpleNamespace) -> None:
     assert f"/f/{token}" in response.text
     assert "No goals today" in response.text
     assert 'id="goal-list"' in response.text
+    assert "data-submit" in response.text
+    assert "data-submit-label" in response.text
+    assert "btn-spinner" in response.text
 
 
 def test_invalid_token_is_forbidden(bundle: SimpleNamespace) -> None:
@@ -131,8 +134,9 @@ def test_post_then_thanks_shows_fallback_insight(bundle: SimpleNamespace) -> Non
     )
     thanks = bundle.client.get(response.headers["location"])
     assert thanks.status_code == 200
+    assert "Entry added" in thanks.text
     assert "Nightly insight" in thanks.text
-    assert "rule-based" in thanks.text
+    assert "Private reflection" in thanks.text
     assert "Insight pending" not in thanks.text
     assert "Deep work" in thanks.text
     assert len(bundle.mailer.messages) == 1
@@ -162,7 +166,8 @@ def test_thanks_pending_without_insight(bundle: SimpleNamespace) -> None:
     token = make_form_token(TODAY, bundle.settings)
     thanks = bundle.client.get(f"/thanks/{token}")
     assert thanks.status_code == 200
-    assert "Insight pending" in thanks.text
+    assert "Your insight is on its way" in thanks.text
+    assert "Insight pending" not in thanks.text
 
 
 def test_duplicate_post_keeps_single_entry(bundle: SimpleNamespace) -> None:
@@ -194,6 +199,23 @@ def test_get_existing_entry_redirects_to_thanks(bundle: SimpleNamespace) -> None
     response = bundle.client.get(f"/f/{token}", follow_redirects=False)
     assert response.status_code == 303
     assert response.headers["location"] == f"/thanks/{token}"
+
+
+def test_form_and_thanks_are_not_cached(bundle: SimpleNamespace) -> None:
+    token = make_form_token(TODAY, bundle.settings)
+    form = bundle.client.get(f"/f/{token}")
+    assert form.status_code == 200
+    assert form.headers["cache-control"] == "no-store"
+
+    bundle.client.post(
+        f"/f/{token}",
+        data=valid_data(bundle.settings),
+        follow_redirects=False,
+    )
+    thanks = bundle.client.get(f"/thanks/{token}")
+    assert thanks.status_code == 200
+    assert thanks.headers["cache-control"] == "no-store"
+    assert 'id="entry-form"' not in thanks.text
 
 
 def test_validation_error_rerenders_with_values(bundle: SimpleNamespace) -> None:

@@ -187,12 +187,55 @@
   }
 
   if (form) {
-    form.addEventListener("submit", () => {
-      const submit = form.querySelector("[data-submit]");
-      if (submit) {
-        submit.disabled = true;
-        submit.textContent = "Saving…";
+    const submit = form.querySelector("[data-submit]");
+    const submitLabel = submit ? submit.querySelector("[data-submit-label]") : null;
+    const spinner = submit ? submit.querySelector("[data-spinner]") : null;
+
+    const resetSubmit = () => {
+      if (!submit) {
+        return;
       }
+      form.dataset.submitting = "false";
+      form.removeAttribute("aria-busy");
+      submit.disabled = false;
+      submit.classList.remove("is-loading");
+      if (spinner) {
+        spinner.hidden = true;
+      }
+      if (submitLabel) {
+        submitLabel.textContent = submit.dataset.label || "Save tonight's entry";
+      }
+    };
+
+    form.addEventListener("submit", (event) => {
+      if (form.dataset.submitting === "true") {
+        event.preventDefault();
+        return;
+      }
+      if (!submit) {
+        return;
+      }
+      form.dataset.submitting = "true";
+      form.setAttribute("aria-busy", "true");
+      submit.disabled = true;
+      submit.classList.add("is-loading");
+      if (spinner) {
+        spinner.hidden = false;
+      }
+      if (submitLabel) {
+        submitLabel.textContent = "Saving entry…";
+      }
+    });
+
+    window.addEventListener("pageshow", (event) => {
+      if (!event.persisted) {
+        return;
+      }
+      if (form.dataset.submitting === "true") {
+        window.location.reload();
+        return;
+      }
+      resetSubmit();
     });
   }
 })();

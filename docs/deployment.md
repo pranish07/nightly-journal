@@ -273,7 +273,7 @@ python -m scripts.trigger_cron
 
 Inside the nightly or weekly window it claims work; outside it returns an empty `claimed` list.
 
-7. Open the form link from a nightly email, submit an entry, and confirm `/thanks/{token}` shows the entry and insight (or “Insight pending”).
+7. Open the form link from a nightly email, submit an entry, and confirm `/thanks/{token}` shows the “Entry added” confirmation and the saved entry summary.
 8. Check the `email_log` table for `nightly`, `insight`, and `weekly` rows as applicable.
 
 ## 9. Migrations and rollback

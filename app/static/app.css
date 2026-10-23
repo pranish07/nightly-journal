@@ -150,6 +150,21 @@ main {
   margin-bottom: 1.5rem;
 }
 
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.55rem;
+  padding: 0.18rem 0.6rem;
+  color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--success) 30%, var(--border));
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
 .eyebrow {
   margin-bottom: 0.35rem;
   color: var(--muted);
@@ -361,6 +376,25 @@ a:focus-visible {
   opacity: 0.55;
 }
 
+.btn.is-loading {
+  cursor: progress;
+}
+
+.btn-spinner {
+  width: 1em;
+  height: 1em;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+}
+
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .btn-link {
   padding: 0.15rem;
   color: var(--danger);
@@ -497,5 +531,9 @@ a:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .btn-spinner {
+    animation: none;
   }
 }
