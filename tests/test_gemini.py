@@ -251,3 +251,21 @@ def test_fallback_insight_handles_empty_payload() -> None:
     assert len(output.actions) == 3
     assert output.struggles == []
     assert "no entries" in output.summary.lower()
+
+
+def test_fallback_insight_uses_payload_window() -> None:
+    output = fallback_insight(
+        {
+            "range": {"start": "2026-10-17", "end": "2026-10-23"},
+            "summary": {
+                "logged_days": 7,
+                "goal_days": 7,
+                "goals_total": 7,
+                "goals_done": 4,
+                "completion_ratio": 0.57,
+            },
+            "streaks": {"current_goal": 1},
+        }
+    )
+    assert "last 7 days" in output.summary
+    assert any("last 7 days" in win for win in output.wins)

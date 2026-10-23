@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import json
 import smtplib
 from email.message import EmailMessage
 
@@ -8,6 +10,7 @@ import pytest
 
 from app.config import Settings
 from app.mailer import (
+    InlineImage,
     MailerAuthError,
     MailerError,
     OutboundEmail,
@@ -231,3 +234,61 @@ def test_make_mailer_selects_transport() -> None:
         make_mailer(settings(mail_transport="resend")),
         ResendMailer,
     )
+
+
+def outbound_with_image() -> OutboundEmail:
+    return OutboundEmail(
+        subject="Subject",
+        html='<p>Hello <img src="cid:weekly-mood"></p>',
+        text="Hello",
+        inline_images=(
+            InlineImage(
+                cid="weekly-mood",
+                filename="weekly-mood.png",
+                content=b"fake-png",
+                alt="Mood chart",
+            ),
+        ),
+    )
+
+
+def test_smtp_mailer_builds_related_inline_image(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("app.mailer.smtplib.SMTP", FakeSMTP)
+    mailer = SmtpMailer(settings(), sleep=lambda _seconds: None)
+
+    mailer.send(outbound_with_image())
+
+    message = FakeSMTP.instances[0].message
+    assert message is not None
+    assert message.get_content_type() == "multipart/alternative"
+    related = message.get_payload()[1]
+    assert related.get_content_type() == "multipart/related"
+    image = related.get_payload()[1]
+    assert image.get_content_type() == "image/png"
+    assert image["Content-ID"] == "<weekly-mood>"
+    assert image["Content-Disposition"] == 'inline; filename="weekly-mood.png"'
+    assert image.get_payload(decode=True) == b"fake-png"
+
+
+def test_resend_mailer_sends_inline_image_attachments() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return httpx.Response(200, json={"id": "email_1"})
+
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    try:
+        mailer = ResendMailer(settings(mail_transport="resend"), client=client)
+        mailer.send(outbound_with_image())
+    finally:
+        client.close()
+
+    payload = json.loads(requests[0].content)
+    attachment = payload["attachments"][0]
+    assert attachment["filename"] == "weekly-mood.png"
+    assert attachment["content_id"] == "weekly-mood"
+    assert attachment["content_type"] == "image/png"
+    assert base64.b64decode(attachment["content"]) == b"fake-png"

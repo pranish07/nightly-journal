@@ -7,6 +7,7 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoes
 from sqlalchemy.orm import Session
 
 from app.config import Settings
+from app.gemini import GeminiClient
 from app.mailer import OutboundEmail
 from app.models import Entry, Insight
 from app.services.entries import (
@@ -16,6 +17,12 @@ from app.services.entries import (
 )
 from app.tokens import make_form_token
 from app.web import format_date
+from app.weekly import (
+    build_weekly_report,
+    get_or_create_weekly_insight,
+    weekly_email_context,
+    weekly_metric_rows,
+)
 
 EMAIL_DIR = Path(__file__).resolve().parent / "templates" / "email"
 
@@ -77,4 +84,45 @@ def build_insight_email(
         subject=f"Your nightly insight: {context['date_label']}",
         html=_env.get_template("insight.html").render(**context),
         text=_env.get_template("insight.txt").render(**context),
+    )
+
+
+def build_weekly_email(
+    session: Session,
+    settings: Settings,
+    saturday: date,
+    *,
+    gemini_client: GeminiClient | None = None,
+) -> OutboundEmail:
+    base_url = settings.public_base_url.rstrip("/")
+    report = build_weekly_report(
+        session,
+        settings,
+        saturday,
+        include_charts=True,
+    )
+    insight = get_or_create_weekly_insight(
+        session,
+        settings,
+        saturday,
+        gemini_client=gemini_client,
+    )
+    context = weekly_email_context(report, insight)
+    context.update(
+        {
+            "start_label": format_date(report.start),
+            "end_label": format_date(report.end),
+            "metric_rows": weekly_metric_rows(report),
+            "dashboard_url": f"{base_url}/",
+        }
+    )
+    subject = (
+        f"Your week in review: {report.start:%b} {report.start.day} - "
+        f"{report.end:%b} {report.end.day}, {report.end.year}"
+    )
+    return OutboundEmail(
+        subject=subject,
+        html=_env.get_template("weekly.html").render(**context),
+        text=_env.get_template("weekly.txt").render(**context),
+        inline_images=report.charts,
     )

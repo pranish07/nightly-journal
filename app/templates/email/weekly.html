@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Your weekly review</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f1e8;color:#25231f;font-family:Arial,Helvetica,sans-serif;">
+  <div style="display:none;font-size:1px;color:#f5f1e8;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">
+    {{ summary }}
+  </div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f1e8;">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;background-color:#fffdf8;border:1px solid #d9d1c2;border-radius:14px;">
+          <tr>
+            <td style="padding:28px 28px 10px;">
+              <p style="margin:0 0 8px;color:#6b665d;font-size:12px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase;">Weekly review</p>
+              <h1 style="margin:0 0 8px;color:#25231f;font-size:26px;line-height:1.2;">Your week, in one page</h1>
+              <p style="margin:0 0 14px;color:#6b665d;font-size:14px;line-height:1.5;">{{ start_label }} &ndash; {{ end_label }}</p>
+              <p style="margin:0;color:#3f3a33;font-size:17px;line-height:1.6;">{{ summary }}</p>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:20px 28px 0;">
+              <h2 style="margin:0 0 10px;color:#25231f;font-size:19px;">The numbers</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;font-size:15px;line-height:1.5;">
+                {% for label, value in metric_rows %}
+                <tr>
+                  <td style="padding:7px 0;border-bottom:1px solid #e4ddd0;color:#5f594f;">{{ label }}</td>
+                  <td style="padding:7px 0;border-bottom:1px solid #e4ddd0;color:#25231f;font-weight:bold;text-align:right;">{{ value }}</td>
+                </tr>
+                {% endfor %}
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:22px 28px 0;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:19px;">Goal completion</h2>
+              <img src="cid:{{ charts[0].cid }}" alt="{{ charts[0].alt }}" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 28px 0;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:19px;">Sleep timing</h2>
+              <img src="cid:{{ charts[1].cid }}" alt="{{ charts[1].alt }}" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 28px 0;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:19px;">Screen time</h2>
+              <img src="cid:{{ charts[2].cid }}" alt="{{ charts[2].alt }}" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;">
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:20px 28px 0;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:19px;">Mood</h2>
+              <img src="cid:{{ charts[3].cid }}" alt="{{ charts[3].alt }}" width="560" style="display:block;width:100%;max-width:560px;height:auto;border:0;">
+            </td>
+          </tr>
+
+          {% if easiest or hardest %}
+          <tr>
+            <td style="padding:24px 28px 0;">
+              <h2 style="margin:0 0 10px;color:#25231f;font-size:19px;">Goals worth noticing</h2>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                {% if easiest %}
+                <tr>
+                  <td style="padding:12px 14px;background-color:#eef4ef;border-radius:10px;">
+                    <p style="margin:0 0 4px;color:#2f6656;font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Easiest</p>
+                    <p style="margin:0 0 3px;color:#25231f;font-size:16px;font-weight:bold;">{{ easiest.title }}</p>
+                    <p style="margin:0;color:#5f594f;font-size:14px;line-height:1.5;">Difficulty {{ easiest.difficulty }}/5 &middot; {{ easiest.date_label }} &middot; {% if easiest.done %}done{% else %}not done{% endif %}{% if easiest.note %}<br>{{ easiest.note }}{% endif %}</p>
+                  </td>
+                </tr>
+                {% endif %}
+                {% if hardest %}
+                <tr><td style="height:10px;line-height:10px;">&nbsp;</td></tr>
+                <tr>
+                  <td style="padding:12px 14px;background-color:#f7efe3;border-radius:10px;">
+                    <p style="margin:0 0 4px;color:#a45a00;font-size:12px;font-weight:bold;letter-spacing:1px;text-transform:uppercase;">Hardest</p>
+                    <p style="margin:0 0 3px;color:#25231f;font-size:16px;font-weight:bold;">{{ hardest.title }}</p>
+                    <p style="margin:0;color:#5f594f;font-size:14px;line-height:1.5;">Difficulty {{ hardest.difficulty }}/5 &middot; {{ hardest.date_label }} &middot; {% if hardest.done %}done{% else %}not done{% endif %}{% if hardest.note %}<br>{{ hardest.note }}{% endif %}</p>
+                  </td>
+                </tr>
+                {% endif %}
+              </table>
+            </td>
+          </tr>
+          {% endif %}
+
+          {% if payload.wins %}
+          <tr>
+            <td style="padding:22px 28px 0;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:19px;">Wins</h2>
+              <ul style="margin:0;padding-left:20px;color:#4f4a42;font-size:15px;line-height:1.6;">
+                {% for item in payload.wins %}<li style="margin:0 0 4px;">{{ item }}</li>{% endfor %}
+              </ul>
+            </td>
+          </tr>
+          {% endif %}
+          {% if payload.struggles %}
+          <tr>
+            <td style="padding:22px 28px 0;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:19px;">Struggles</h2>
+              <ul style="margin:0;padding-left:20px;color:#4f4a42;font-size:15px;line-height:1.6;">
+                {% for item in payload.struggles %}
+                  <li style="margin:0 0 6px;"><strong>{{ item.struggle }}</strong>{% if item.likely_cause %} &mdash; {{ item.likely_cause }}{% endif %}</li>
+                {% endfor %}
+              </ul>
+            </td>
+          </tr>
+          {% endif %}
+          {% if payload.actions %}
+          <tr>
+            <td style="padding:22px 28px 0;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:19px;">Three small actions for next week</h2>
+              <ol style="margin:0;padding-left:20px;color:#4f4a42;font-size:15px;line-height:1.6;">
+                {% for item in payload.actions %}<li style="margin:0 0 4px;">{{ item }}</li>{% endfor %}
+              </ol>
+            </td>
+          </tr>
+          {% endif %}
+          {% if payload.pattern %}
+          <tr>
+            <td style="padding:22px 28px 0;">
+              <h2 style="margin:0 0 8px;color:#25231f;font-size:19px;">Pattern</h2>
+              <p style="margin:0;color:#4f4a42;font-size:15px;line-height:1.6;">{{ payload.pattern }}</p>
+            </td>
+          </tr>
+          {% endif %}
+
+          <tr>
+            <td style="padding:24px 28px;border-top:1px solid #d9d1c2;">
+              <p style="margin:0 0 6px;color:#6b665d;font-size:13px;line-height:1.6;">
+                Generated by {{ model_name }}. No external images are used in this email.
+              </p>
+              <p style="margin:0;color:#6b665d;font-size:13px;line-height:1.6;">
+                <a href="{{ dashboard_url }}" style="color:#234f43;">Open the dashboard</a>
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

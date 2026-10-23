@@ -186,3 +186,21 @@ def test_run_skips_job_that_is_not_sending(
     run_claimed_job(factory, settings(), mailer, "nightly", TODAY, clock=lambda: NOW)
 
     assert mailer.messages == []
+
+
+def test_run_claimed_weekly_job_sends_inline_charts(
+    factory: sessionmaker[Session],
+) -> None:
+    mailer = FakeMailer()
+    saturday = date(2026, 10, 24)
+    with factory() as session:
+        claim_job(session, "weekly", saturday, NOW)
+
+    run_claimed_job(factory, settings(), mailer, "weekly", saturday, clock=lambda: NOW)
+
+    assert len(mailer.messages) == 1
+    assert "week in review" in mailer.messages[0].subject
+    assert len(mailer.messages[0].inline_images) == 4
+    log = get_log(factory)
+    assert log.kind == "weekly"
+    assert log.status == "sent"

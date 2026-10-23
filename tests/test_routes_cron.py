@@ -127,9 +127,7 @@ def test_tick_records_failure(bundle: SimpleNamespace) -> None:
         assert log.last_error == "relay rejected"
 
 
-def test_weekly_job_is_not_claimed_in_this_milestone(
-    bundle: SimpleNamespace,
-) -> None:
+def test_tick_sends_weekly_email(bundle: SimpleNamespace) -> None:
     bundle.app.state.clock = lambda: datetime(2026, 10, 24, 1, 15, tzinfo=UTC)
     response = bundle.client.get(
         "/cron/tick",
@@ -137,5 +135,13 @@ def test_weekly_job_is_not_claimed_in_this_milestone(
     )
 
     assert response.status_code == 202
-    assert response.json()["claimed"] == []
-    assert bundle.mailer.messages == []
+    assert response.json()["claimed"] == [
+        {"kind": "weekly", "local_date": "2026-10-24", "attempts": 1}
+    ]
+    assert len(bundle.mailer.messages) == 1
+    assert len(bundle.mailer.messages[0].inline_images) == 4
+    with Session(bundle.engine) as session:
+        log = session.scalar(select(EmailLog))
+        assert log is not None
+        assert log.kind == "weekly"
+        assert log.status == "sent"

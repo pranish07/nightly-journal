@@ -29,8 +29,6 @@ def tick(
     claimed: list[dict[str, object]] = []
 
     for job in due_jobs(local_dt):
-        if job.kind != "nightly":
-            continue
         claim = claim_job(session, job.kind, job.local_date, now)
         if claim is None:
             continue
@@ -42,6 +40,7 @@ def tick(
             claim.kind,
             claim.local_date,
             request.app.state.clock,
+            request.app.state.gemini_client,
         )
         claimed.append(
             {

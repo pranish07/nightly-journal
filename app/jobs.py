@@ -10,7 +10,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.config import Settings
-from app.email_builder import build_nightly_email
+from app.email_builder import build_nightly_email, build_weekly_email
+from app.gemini import GeminiClient
 from app.mailer import Mailer, MailerAuthError, MailerError
 from app.models import EmailLog
 from app.timeutils import utc_now
@@ -156,6 +157,7 @@ def run_claimed_job(
     kind: str,
     local_date: date,
     clock: Callable[[], datetime] = utc_now,
+    gemini_client: GeminiClient | None = None,
 ) -> None:
     now = clock()
     with session_factory() as session:
@@ -165,6 +167,13 @@ def run_claimed_job(
         try:
             if kind == "nightly":
                 outbound = build_nightly_email(session, settings, local_date)
+            elif kind == "weekly":
+                outbound = build_weekly_email(
+                    session,
+                    settings,
+                    local_date,
+                    gemini_client=gemini_client,
+                )
             else:
                 raise MailerError(f"unsupported email job kind: {kind}")
             mailer.send(outbound)

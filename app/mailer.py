@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import smtplib
 import ssl
 import time
@@ -22,10 +23,20 @@ class MailerAuthError(MailerError):
 
 
 @dataclass(frozen=True, slots=True)
+class InlineImage:
+    cid: str
+    filename: str
+    content: bytes
+    content_type: str = "image/png"
+    alt: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class OutboundEmail:
     subject: str
     html: str
     text: str
+    inline_images: tuple[InlineImage, ...] = ()
 
 
 class Mailer(Protocol):
@@ -39,6 +50,18 @@ def _build_mime(settings: Settings, message: OutboundEmail) -> MIMEMessage:
     mime["Subject"] = message.subject
     mime.set_content(message.text)
     mime.add_alternative(message.html, subtype="html")
+    if message.inline_images:
+        html_part = mime.get_payload()[1]
+        for image in message.inline_images:
+            maintype, subtype = image.content_type.split("/", 1)
+            html_part.add_related(
+                image.content,
+                maintype=maintype,
+                subtype=subtype,
+                cid=f"<{image.cid}>",
+                filename=image.filename,
+                disposition="inline",
+            )
     return mime
 
 
@@ -128,6 +151,16 @@ class ResendMailer:
             "html": message.html,
             "text": message.text,
         }
+        if message.inline_images:
+            payload["attachments"] = [
+                {
+                    "filename": image.filename,
+                    "content": base64.b64encode(image.content).decode("ascii"),
+                    "content_type": image.content_type,
+                    "content_id": image.cid,
+                }
+                for image in message.inline_images
+            ]
         headers = {
             "Authorization": f"Bearer {settings.resend_api_key}",
             "Content-Type": "application/json",
