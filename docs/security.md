@@ -115,7 +115,7 @@ User text is escaped in HTML and email HTML. It is not stripped of all markup be
 Secrets are loaded from environment variables or `.env` through `pydantic-settings`.
 
 - `.env` and `.env.*` are ignored by Git, except `.env.example`.
-- No `.env.example` exists yet.
+- `.env.example` contains placeholders only; copy it to `.env` and fill in local values.
 - Do not commit real secrets, API keys, SMTP keys, IMAP passwords, or database URLs with credentials.
 - Use the provider dashboards to rotate leaked credentials.
 - `EMAIL_FROM` and `EMAIL_TO` are configuration, not secrets, but they are personal data and should not be committed as real values.

@@ -13,7 +13,7 @@ python -m ruff format --check .
 alembic check
 ```
 
-The current suite has **210 tests**. `pyproject.toml` sets `testpaths = ["tests"]` and targets Python 3.12 for Ruff.
+The current suite has **216 tests**. `pyproject.toml` sets `testpaths = ["tests"]` and targets Python 3.12 for Ruff.
 
 ## Test environment
 
@@ -29,7 +29,7 @@ NOW = datetime(2026, 10, 23, 15, 15, tzinfo=UTC)
 
 `create_app(..., clock=lambda: NOW)` and job/insight functions receive the same clock where relevant. This keeps windows, leases, and retry times deterministic.
 
-There is no `tests/conftest.py`; fixtures are local to each test module.
+`tests/conftest.py` disables `.env` loading so local settings never leak into tests. Other fixtures are local to each test module.
 
 ## Module coverage
 
@@ -61,8 +61,7 @@ There is no `tests/conftest.py`; fixtures are local to each test module.
 - Dashboard, login, sessions, and login throttling do not exist.
 - Gmail API/OAuth does not exist.
 - There is no browser end-to-end test.
-- There is no Postgres CI job; migration tests use SQLite.
-- There is no CI workflow at all.
+- Migration tests use SQLite. CI (`.github/workflows/ci.yml`) runs Ruff, pytest, and `alembic check` on SQLite; there is no Postgres CI job.
 - There is no test for every possible Gemini model/rate-limit variant.
 
 ## Adding a streak edge case
@@ -110,8 +109,6 @@ Do not assert on real email delivery or real Gemini calls. Use the fake mailer a
 ## Known warning
 
 The suite has been run successfully with only a Starlette/httpx deprecation warning. Treat new warnings as review items rather than silently accepting them.
-
-`test_form_token_rejects_tampering` can intermittently fail because it changes only the final base64 character of the token. The unused padding bits can leave the decoded signature unchanged. Rerun the test before treating that failure as a regression; the test itself is the fragile part.
 
 ## Related docs
 

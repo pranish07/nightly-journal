@@ -1,0 +1,36 @@
+name: Scheduled tick
+
+permissions: {}
+
+on:
+  schedule:
+    - cron: "20,50 15 * * *"
+    - cron: "20 16 * * *"
+    - cron: "20,50 0 * * 6"
+    - cron: "20 1 * * 6"
+  workflow_dispatch:
+
+concurrency:
+  group: cron-tick
+  cancel-in-progress: false
+
+jobs:
+  tick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call /cron/tick
+        env:
+          PUBLIC_BASE_URL: ${{ secrets.PUBLIC_BASE_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+          if [ -z "${PUBLIC_BASE_URL:-}" ] || [ -z "${CRON_SECRET:-}" ]; then
+            echo "Skipping: set PUBLIC_BASE_URL and CRON_SECRET repository secrets to enable scheduled ticks."
+            exit 0
+          fi
+          BASE="${PUBLIC_BASE_URL%/}"
+          curl --silent --show-error --fail-with-body \
+            --max-time 180 --retry 2 --retry-delay 15 \
+            -X POST "$BASE/cron/tick" \
+            -H "X-Cron-Secret: $CRON_SECRET"

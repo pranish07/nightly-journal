@@ -88,6 +88,13 @@ class GeminiClient:
         if not self._settings.gemini_model:
             raise GeminiError("model_not_configured")
 
+        generation_config: dict[str, Any] = {
+            "responseMimeType": "application/json",
+            "temperature": 0.4,
+            "maxOutputTokens": 900,
+        }
+        if self._settings.gemini_model.startswith("gemini-3"):
+            generation_config["thinkingConfig"] = {"thinkingLevel": "low"}
         body = {
             "system_instruction": {"parts": [{"text": SYSTEM_INSTRUCTION}]},
             "contents": [
@@ -104,11 +111,7 @@ class GeminiClient:
                     ],
                 }
             ],
-            "generationConfig": {
-                "responseMimeType": "application/json",
-                "temperature": 0.4,
-                "maxOutputTokens": 900,
-            },
+            "generationConfig": generation_config,
         }
         headers = {
             "x-goog-api-key": self._settings.gemini_api_key,

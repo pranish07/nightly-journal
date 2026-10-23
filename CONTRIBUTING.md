@@ -11,14 +11,15 @@ python -m venv .venv
 source .venv/bin/activate
 # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
+cp .env.example .env
 alembic upgrade head
 ```
 
-The defaults use SQLite and development secrets. Create a `.env` for real email, database, or Gemini settings. Use the variable list in [docs/deployment.md](docs/deployment.md).
+The defaults use SQLite and development secrets. Edit the copied `.env` for real email, database, or Gemini settings. Use the variable list in [docs/deployment.md](docs/deployment.md).
 
 ## Checks
 
-There is no CI workflow yet. Run these locally before opening a pull request:
+CI runs these checks on pushes to `main` and on pull requests. Run them locally before pushing:
 
 ```bash
 python -m pytest -q

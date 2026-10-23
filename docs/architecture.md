@@ -180,7 +180,7 @@ There is no login, session cookie, password check, login throttle, dashboard his
 
 - Dashboard, password login, sessions, login throttling, heatmap, history pages.
 - Gmail API/OAuth adapter. The current mail transports are SMTP and Resend.
-- Dockerfile, `render.yaml`, `.env.example`, CI workflow, seed script.
+- Dockerfile.
 - Weekly report preview CLI.
 - Editing or deleting a submitted entry.
 - Multi-user support, timezone selection, or a database-backed job queue.

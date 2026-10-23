@@ -23,7 +23,7 @@ Not implemented:
 - Gmail API/OAuth sending.
 - Entry editing or deletion UI.
 - Weekly preview CLI.
-- Dockerfile, `render.yaml`, `.env.example`, or CI.
+- Dockerfile.
 
 ## Requirements
 
@@ -39,13 +39,25 @@ python -m venv .venv
 source .venv/bin/activate
 # Windows: .venv\Scripts\activate
 pip install -r requirements-dev.txt
+cp .env.example .env   # optional; edit for real email, database, or Gemini
 alembic upgrade head
 uvicorn app.main:app --reload
 ```
 
-The defaults use SQLite (`nightly-journal.db`), development secrets, and placeholder email addresses. For real email, create a `.env` using the variable list in [docs/deployment.md](docs/deployment.md). Do not use the development secrets in production.
+The defaults use SQLite (`nightly-journal.db`), development secrets, and placeholder email addresses. For real email, edit the copied `.env` and see the variable list in [docs/deployment.md](docs/deployment.md). Do not use the development secrets in production.
 
 Open `http://localhost:8000/` for the placeholder page and `http://localhost:8000/healthz` for health.
+
+## Demo data
+
+To fill the local SQLite database with 30 days of demo entries:
+
+```bash
+alembic upgrade head
+python -m scripts.seed
+```
+
+The seed script creates varied goals, three no-goals days, four missed days, and realistic moods, sleep times, and screen time. It refuses to run when `APP_ENV=production` or when `DATABASE_URL` points at PostgreSQL, and it only writes to a file-backed SQLite database. Existing dates are left untouched, so re-running fills in missing days. `python scripts/seed.py` works too.
 
 ## Tests
 
@@ -56,7 +68,7 @@ python -m ruff format --check .
 alembic check
 ```
 
-The current suite has 210 tests. See [docs/testing.md](docs/testing.md).
+The current suite has 216 tests. See [docs/testing.md](docs/testing.md).
 
 ## Documentation
 
@@ -77,11 +89,11 @@ Most useful pages:
 
 ## Deployment summary
 
-The reference deployment is Neon PostgreSQL, Brevo SMTP on port 2525, optional Gemini, Render Free, and cron-job.org. Render Free blocks SMTP ports `25`, `465`, and `587`, which is why port `2525` is required. See [docs/deployment.md](docs/deployment.md) and [docs/free-tier-limits.md](docs/free-tier-limits.md).
+The reference deployment is Neon PostgreSQL, Brevo SMTP on port 2525, optional Gemini, Render Free, and cron-job.org. `render.yaml` defines the Render service and `.github/workflows/schedule.yml` can trigger `/cron/tick` instead of cron-job.org. Render Free blocks SMTP ports `25`, `465`, and `587`, which is why port `2525` is required. See [docs/deployment.md](docs/deployment.md) and [docs/free-tier-limits.md](docs/free-tier-limits.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). There is no CI workflow yet, so run the checks locally.
+See [CONTRIBUTING.md](CONTRIBUTING.md). CI runs the same checks on pushes to `main` and on pull requests.
 
 ## Changelog
 

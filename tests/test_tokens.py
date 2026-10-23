@@ -33,8 +33,9 @@ def test_form_token_round_trip(settings: Settings) -> None:
 
 def test_form_token_rejects_tampering(settings: Settings) -> None:
     token = make_form_token(DAY, settings)
+    tampered = ("A" if token[0] != "A" else "B") + token[1:]
     with pytest.raises(InvalidToken):
-        read_form_token(token[:-1] + ("A" if token[-1] != "A" else "B"), settings)
+        read_form_token(tampered, settings)
 
 
 def test_form_token_rejects_wrong_secret(settings: Settings) -> None:

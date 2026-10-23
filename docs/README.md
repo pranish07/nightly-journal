@@ -42,7 +42,7 @@ Not implemented:
 - Gmail API/OAuth sending.
 - Entry editing/deletion UI.
 - Weekly preview CLI.
-- Dockerfile, `render.yaml`, `.env.example`, or CI.
+- Dockerfile.
 
 ## Documentation conventions
 

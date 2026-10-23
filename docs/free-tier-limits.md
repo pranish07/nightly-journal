@@ -17,18 +17,18 @@ Free tiers change without notice. Re-check the linked pages before relying on a 
 | Resend | Optional HTTPS mail adapter | 3,000 emails per month; 100 emails per day; 3 verified domains; 3 email inboxes; 30-day email retention; sent and received messages count toward the quota | [Resend pricing](https://resend.com/pricing) · [Sending limits](https://resend.com/docs/knowledge-base/resend-sending-limits) |
 | Gemini API | Optional AI insight generation | Free tier is rate-limited per model and project; limits are expressed as RPM, TPM, and RPD; free-tier content may be used to improve Google products; daily quotas reset at midnight Pacific | [Gemini rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) · [Gemini pricing](https://ai.google.dev/gemini-api/docs/pricing) |
 | Gmail IMAP | Optional test-email inbox check | Personal Gmail has daily sending/recipient limits; app passwords require 2-Step Verification; IMAP access must be enabled | [Gmail sending limits](https://support.google.com/mail/answer/22839) · [App passwords](https://support.google.com/mail/answer/185833) |
-| GitHub Actions | Optional fallback scheduler | Public repositories use free standard runners; private repositories consume plan minutes (GitHub Free includes 2,000 minutes per month); this project has no workflow | [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions) |
+| GitHub Actions | Optional fallback scheduler | Public repositories use free standard runners; private repositories consume plan minutes (GitHub Free includes 2,000 minutes per month); the optional scheduler uses about 100 minutes per month | [GitHub Actions billing](https://docs.github.com/en/billing/concepts/product-billing/github-actions) |
 
 ## What this project actually uses
 
 - **Render Free** for the web process.
 - **Neon Free** for PostgreSQL.
-- **cron-job.org** for `/cron/tick`.
+- **cron-job.org** or the optional GitHub Actions workflow for `/cron/tick`.
 - **Brevo SMTP on port 2525** for nightly, insight, and weekly email.
 - **Resend** only if `MAIL_TRANSPORT=resend`.
 - **Gemini** only if `GEMINI_API_KEY` and `GEMINI_MODEL` are set.
 - **Gmail IMAP** only for `python -m app.cli send-test-email` delivery checks.
-- **GitHub Actions** is not configured.
+- **GitHub Actions** runs CI and the optional scheduler workflow; neither is required for local development.
 
 ## Practical implications
 

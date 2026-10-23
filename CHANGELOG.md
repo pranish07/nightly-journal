@@ -8,10 +8,21 @@ The project has no tagged releases yet. This file records completed implementati
 
 - Maintainer documentation under `docs/` covering architecture, data model, scheduling, streaks, AI insights, email, security, deployment, operations, testing, free-tier limits, roadmap, and decisions.
 - Top-level README, contributing guide, and changelog.
+- `.env.example` with placeholders for every supported setting.
+- GitHub Actions CI running Ruff, pytest, and Alembic migration checks.
+- `scripts/seed.py` for 30 days of local demo entries; it refuses production and PostgreSQL targets.
+- `render.yaml` for a repeatable Render web service.
+- `.github/workflows/schedule.yml` as an optional scheduler for `/cron/tick`.
+- `scripts/trigger_cron.py` to call the authenticated tick endpoint using local settings.
 
 ### Changed
 
 - No runtime behavior changed in the documentation pass.
+- Token-tampering test now mutates the first token character, so it fails deterministically when a signed token is altered.
+- Pytest resolves the project root via `pythonpath = ["."]`, so both `pytest` and `python -m pytest` work.
+- Gemini 3 models request low thinking to avoid long insight generations and timeouts.
+- Tests ignore the local `.env` so developer settings cannot change test behavior.
+- Deployment docs now cover the Render Blueprint, cron-job.org, and the GitHub Actions scheduler.
 
 ## Initial implementation
 

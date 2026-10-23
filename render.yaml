@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: nightly-journal
+    runtime: python
+    plan: free
+    branch: main
+    autoDeploy: true
+    buildCommand: pip install -r requirements.txt
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /healthz
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: PUBLIC_BASE_URL
+        sync: false
+      - key: MAIL_TRANSPORT
+        value: resend
+      - key: RESEND_API_KEY
+        sync: false
+      - key: EMAIL_FROM
+        value: "Nightly Journal <onboarding@resend.dev>"
+      - key: EMAIL_TO
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash-lite
+      - key: GEMINI_TIMEOUT_SECONDS
+        value: "30"
+      - key: FORM_TOKEN_SECRET
+        generateValue: true
+      - key: CSRF_SECRET
+        generateValue: true
+      - key: CRON_SECRET
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO

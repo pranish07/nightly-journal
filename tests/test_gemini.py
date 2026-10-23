@@ -116,6 +116,26 @@ def test_gemini_client_parses_valid_json() -> None:
     assert "Ignore all previous instructions" not in system_text
     assert "untrusted data" in system_text
     assert body["generationConfig"]["responseMimeType"] == "application/json"
+    assert "thinkingConfig" not in body["generationConfig"]
+
+
+def test_gemini_3_models_request_low_thinking() -> None:
+    requests: list[httpx.Request] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        requests.append(request)
+        return gemini_response(valid_output())
+
+    client = client_for(handler)
+    try:
+        gemini = GeminiClient(settings(gemini_model="gemini-3.6-flash"), client=client)
+        output = gemini.generate(payload())
+    finally:
+        client.close()
+
+    assert isinstance(output, InsightOutput)
+    body = json.loads(requests[0].read())
+    assert body["generationConfig"]["thinkingConfig"] == {"thinkingLevel": "low"}
 
 
 @pytest.mark.parametrize(

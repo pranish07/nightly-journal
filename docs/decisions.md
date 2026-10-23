@@ -176,8 +176,7 @@ Last verified: 2026-10-23
 - `/` remains a placeholder.
 - There is no login.
 - There is no Gmail API/OAuth.
-- There is no Dockerfile or `render.yaml`.
-- There is no CI workflow.
+- There is no Dockerfile.
 - There is no weekly preview command.
 
 ## 0012 — No-goals days are neutral

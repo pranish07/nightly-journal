@@ -1,16 +1,16 @@
 # Deployment
 
-Purpose: Provide a first-deploy procedure for the current repository using Neon, Brevo or Resend, Gemini, Render, and cron-job.org.
+Purpose: Provide a first-deploy procedure for the current repository using Neon, Brevo or Resend, Gemini, Render, and cron-job.org or GitHub Actions.
 
 Last verified: 2026-10-23
 
 ## What exists in the repository
 
-Current deployment assets: `requirements.txt`, `requirements-dev.txt`, `.python-version` (`3.12`), `alembic.ini`, `alembic/`, and `app/main.py`.
+Current deployment assets: `requirements.txt`, `requirements-dev.txt`, `.python-version` (`3.12`), `alembic.ini`, `alembic/`, `app/main.py`, `.env.example`, `render.yaml`, `scripts/seed.py`, `.github/workflows/ci.yml`, and `.github/workflows/schedule.yml`.
 
-Not present: `Dockerfile`, `render.yaml`, `.env.example`, a CI workflow, or a seed script.
+Not present: `Dockerfile`.
 
-Because there is no Docker entrypoint, migrations are not automatically run by a container start script. You must either configure the Render start command to run `alembic upgrade head` before Uvicorn or run migrations as a separate release step.
+Because there is no Docker entrypoint, migrations are not automatically run by a container start script. The Render start command runs `alembic upgrade head` before Uvicorn, or you can run migrations as a separate release step.
 
 ## Reference topology
 
@@ -169,40 +169,43 @@ Production startup rejects empty values, the development defaults, or values sho
 | `GEMINI_API_BASE_URL` | no | Google v1beta URL | Override for tests/proxy |
 | `GEMINI_TIMEOUT_SECONDS` | no | `20` | HTTP timeout |
 
-For local development, put the same names in `.env`. There is no `.env.example` in the repository yet.
+For local development, copy [`.env.example`](../.env.example) to `.env` and fill in real values. The template contains placeholders only.
 
-## 6. Create the Render service
+## 6. Deploy the Render service
 
-Because there is no `render.yaml`, create the service manually:
+`render.yaml` defines the web service, build and start commands, health check, and environment variables. It must be committed to the repository's default branch before Render can read it. Create the service from the Blueprint:
+
+1. In Render, choose **New > Blueprint** and connect the GitHub repository.
+2. Render reads `render.yaml` and prompts for variables marked `sync: false`:
+   - `DATABASE_URL`: the Neon URL using `postgresql+psycopg://`.
+   - `PUBLIC_BASE_URL`: `https://<your-host>`. If the hostname is not assigned yet, enter the intended value and update it after the first deploy.
+   - `RESEND_API_KEY`, `EMAIL_TO`, and `GEMINI_API_KEY`.
+3. Render generates `FORM_TOKEN_SECRET`, `CSRF_SECRET`, and `CRON_SECRET`. Copy `CRON_SECRET` for the scheduler.
+4. Apply the Blueprint and deploy.
+
+Production validation requires `APP_ENV=production` with strong secrets, an HTTPS `PUBLIC_BASE_URL`, and PostgreSQL. The blueprint sets `APP_ENV`, mail transport, sender, Gemini model and timeout, and log level; it does not commit secrets.
+
+Manual setup is still supported:
 
 1. Create a **Web Service** from the GitHub repository.
-2. Runtime: Python.
-3. Python version: `3.12` (from `.python-version`).
-4. Build command:
+2. Runtime: Python. Python version: `3.12` from `.python-version`.
+3. Build command: `pip install -r requirements.txt`.
+4. Start command: `alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`.
+5. Health check path: `/healthz`.
+6. Add all environment variables from the table above.
+7. Deploy.
 
-```bash
-pip install -r requirements.txt
-```
-
-5. Start command:
-
-```bash
-alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
-
-The `alembic upgrade head` portion is a manual deployment choice, not an application entrypoint. It makes migrations run on each start. For stricter release control, run migrations separately and use only:
+The `alembic upgrade head` portion makes migrations run on each start. For stricter release control, run migrations separately and use only:
 
 ```bash
 uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-6. Health check path: `/healthz`.
-7. Add all environment variables from the table above.
-8. Deploy.
-
 The service must bind to `0.0.0.0` and the port in `$PORT`. Render handles TLS for the public hostname.
 
-## 7. Configure cron-job.org
+## 7. Configure the scheduler
+
+### Option A: cron-job.org
 
 Create two jobs:
 
@@ -229,6 +232,19 @@ Optionally add a warm-up job:
 
 cron-job.org has a default 30-second request timeout and may auto-disable a job after repeated failures. A Render cold start can exceed 30 seconds; the warm-up request reduces that risk. See [Scheduling](./scheduling.md).
 
+### Option B: GitHub Actions
+
+`.github/workflows/schedule.yml` is included as an alternative for repositories hosted on GitHub. Add two repository secrets:
+
+```bash
+gh secret set PUBLIC_BASE_URL --body "https://<your-host>"
+gh secret set CRON_SECRET --body "<CRON_SECRET from Render>"
+```
+
+The workflow runs `POST /cron/tick` at 21:05, 21:35, and 22:05 NPT nightly, and at 06:05, 06:35, and 07:05 NPT on Saturdays. GitHub cron schedules use UTC; `Asia/Kathmandu` is UTC+05:45, so the workflow uses 15:20, 15:50, and 16:20 UTC plus Saturday 00:20, 00:50, and 01:20 UTC. Scheduled runs can start late, which is why each window has three ticks. On a private repository these runs consume Actions minutes (about 100 per month). GitHub may disable scheduled workflows in inactive repositories, so check the Actions tab periodically.
+
+Use either option. Running both is safe because `email_log` claims each `(kind, local_date)` once, but it is redundant.
+
 ## 8. First-deploy verification
 
 1. Open `https://<your-host>/healthz`; expect `{"status":"ok"}`.
@@ -248,6 +264,15 @@ curl -i -H "X-Cron-Secret: $CRON_SECRET" https://<your-host>/cron/tick
 ```
 
 Expect `202` and a `claimed` list. Outside the window, expect an empty `claimed` list.
+
+For a local server, the helper reads `PUBLIC_BASE_URL` and `CRON_SECRET` from `.env`:
+
+```bash
+python -m scripts.trigger_cron
+```
+
+Inside the nightly or weekly window it claims work; outside it returns an empty `claimed` list.
+
 7. Open the form link from a nightly email, submit an entry, and confirm `/thanks/{token}` shows the entry and insight (or “Insight pending”).
 8. Check the `email_log` table for `nightly`, `insight`, and `weekly` rows as applicable.
 

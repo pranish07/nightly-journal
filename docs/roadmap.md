@@ -87,14 +87,14 @@ The dashboard is **not** shipped. `GET /` is a placeholder, and “dashboard” 
 
 ### 4. Operational manifests and examples
 
-**Problem:** There is no `.env.example`, `render.yaml`, `Dockerfile`, or CI workflow.
+**Problem:** `.env.example`, CI, and `render.yaml` now exist. A `Dockerfile` and a docs link checker are still missing.
 
 **Scope:**
 
-- `.env.example` with placeholders only.
-- Optional `render.yaml` for a repeatable Render service.
+- [x] `.env.example` with placeholders only.
+- [x] CI for Ruff, pytest, and `alembic check`.
+- [x] `render.yaml` for a repeatable Render service.
 - Optional Dockerfile if a non-Render host is needed.
-- CI for Ruff, pytest, and `alembic check`.
 - A docs link checker if it can run without secrets.
 
 **Acceptance criteria:**
@@ -160,7 +160,6 @@ Out of scope. This is a personal journal, not a commercial product.
 - No dashboard until authentication is designed.
 - No Gmail API or Google OAuth.
 - No Docker/Render manifest in the repository.
-- No CI workflow.
 - No weekly preview CLI.
 - No entry editing or deletion UI.
 - No multi-user or sharing features.
